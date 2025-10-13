@@ -1,0 +1,40 @@
+{
+  "name": "ai-omnibox",
+  "version": "1.0.0",
+  "description": "Chrome extension that adds multiple AI services (ChatGPT, Copilot, Claude, Perplexity) to your omnibox with 'chat' keyword",
+  "main": "background.js",
+  "scripts": {
+    "build": "echo 'Extension ready for loading in Chrome!'",
+    "zip": "zip -r ai-omnibox.zip . -x '*.git*' 'node_modules/*' '*.DS_Store' 'package*.json'",
+    "lint": "echo 'Add ESLint here if desired'",
+    "test": "echo 'Add tests here if desired'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jovylle/chatgpt-omnibox.git"
+  },
+  "keywords": [
+    "chrome-extension",
+    "chatgpt",
+    "copilot",
+    "claude",
+    "perplexity",
+    "omnibox",
+    "search",
+    "ai",
+    "openai",
+    "anthropic",
+    "microsoft",
+    "productivity"
+  ],
+  "author": "jovylle",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jovylle/chatgpt-omnibox/issues"
+  },
+  "homepage": "https://github.com/jovylle/chatgpt-omnibox#readme",
+  "devDependencies": {},
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
