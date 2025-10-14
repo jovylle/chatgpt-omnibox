@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Search Router - Universal AI Access from Your Browser</title>
+    <meta name="description" content="Transform your browser's address bar into a powerful AI hub. Quick access to ChatGPT, Claude, GitHub Copilot, and Perplexity with just one keyword.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+            max-width: 600px;
+        }
+        
+        .cta-button {
+            background: #10a37f;
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(16,163,127,0.3);
+        }
+        
+        .cta-button:hover {
+            background: #0d8f6f;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(16,163,127,0.4);
+        }
+        
+        /* Demo Animation */
+        .demo {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 40px auto;
+            max-width: 600px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .address-bar {
+            background: #f5f5f5;
+            border-radius: 25px;
+            padding: 15px 25px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .typing-animation {
+            color: #10a37f;
+            font-weight: bold;
+        }
+        
+        @keyframes typing {
+            0% { width: 0; }
+            50% { width: 100%; }
+            100% { width: 100%; }
+        }
+        
+        @keyframes blink {
+            0%, 50% { border-right: 2px solid #10a37f; }
+            51%, 100% { border-right: none; }
+        }
+        
+        .typing-text {
+            display: inline-block;
+            overflow: hidden;
+            white-space: nowrap;
+            animation: typing 3s steps(20) infinite, blink 1s infinite;
+        }
+        
+        /* Features Section */
+        .features {
+            padding: 80px 20px;
+            background: #f8f9fa;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 60px;
+            color: #333;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        /* AI Services Section */
+        .ai-services {
+            padding: 80px 20px;
+            background: white;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .service-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            border-left: 5px solid;
+            transition: all 0.3s ease;
+        }
+        
+        .service-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        
+        .service-card.chatgpt { border-left-color: #10a37f; }
+        .service-card.claude { border-left-color: #cc785c; }
+        .service-card.copilot { border-left-color: #0078d4; }
+        .service-card.perplexity { border-left-color: #20b2aa; }
+        
+        .service-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .shortcut-tag {
+            background: rgba(16,163,127,0.1);
+            color: #10a37f;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-weight: bold;
+        }
+        
+        /* How It Works */
+        .how-it-works {
+            padding: 80px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+        
+        .step {
+            text-align: center;
+        }
+        
+        .step-number {
+            background: #10a37f;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 20px rgba(16,163,127,0.3);
+        }
+        
+        .step h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+        }
+        
+        /* Stats Section */
+        .stats {
+            padding: 60px 20px;
+            background: #10a37f;
+            color: white;
+            text-align: center;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .footer-links {
+            margin: 20px 0;
+        }
+        
+        .footer-links a {
+            color: #10a37f;
+            text-decoration: none;
+            margin: 0 20px;
+            transition: opacity 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            opacity: 0.7;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            .demo {
+                margin: 20px;
+            }
+        }
+        
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-on-scroll {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>🔍 AI Search Router</h1>
+        <p>Transform your browser's address bar into a powerful AI hub. One keyword, unlimited possibilities.</p>
+        
+        <div class="demo">
+            <div class="address-bar">
+                <span class="typing-animation">
+                    <span class="typing-text">chat analyze this data</span>
+                </span>
+            </div>
+        </div>
+        
+        <a href="#install" class="cta-button">📥 Get Started - Free</a>
+        
+        <div style="margin-top: 30px; opacity: 0.8;">
+            <p>✨ Available on Chrome Web Store (coming soon) • 🔒 Privacy-first • 📂 Open Source</p>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">✨ Powerful Features</h2>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">⚡</span>
+                    <h3>Lightning Fast</h3>
+                    <p>Type "chat" in your address bar and instantly access any AI service. No more bookmarks or tabs.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🎯</span>
+                    <h3>Smart Shortcuts</h3>
+                    <p>Use prefixes like "g:" for ChatGPT or "c:" for Claude. The extension learns your preferences.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🔄</span>
+                    <h3>Dynamic Branding</h3>
+                    <p>Interface adapts to your selected AI service with custom icons, colors, and suggestions.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🖱️</span>
+                    <h3>Right-Click Search</h3>
+                    <p>Select any text on any webpage and search it instantly with your preferred AI service.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🛡️</span>
+                    <h3>Privacy First</h3>
+                    <p>Zero data collection. Everything stays on your device. Open source and transparent.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">⚙️</span>
+                    <h3>Easy Setup</h3>
+                    <p>Install and start using immediately. Simple settings to customize your experience.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Services -->
+    <section class="ai-services">
+        <div class="container">
+            <h2 class="section-title">🤖 Supported AI Services</h2>
+            
+            <div class="services-grid">
+                <div class="service-card chatgpt">
+                    <div class="service-icon">💬</div>
+                    <h3>ChatGPT</h3>
+                    <p>Conversational AI & coding help</p>
+                    <div class="shortcut-tag">g: or gpt:</div>
+                </div>
+                
+                <div class="service-card claude">
+                    <div class="service-icon">🧠</div>
+                    <h3>Claude AI</h3>
+                    <p>Thoughtful analysis & reasoning</p>
+                    <div class="shortcut-tag">c: or claude:</div>
+                </div>
+                
+                <div class="service-card copilot">
+                    <div class="service-icon">🤖</div>
+                    <h3>GitHub Copilot</h3>
+                    <p>Web search & real-time info</p>
+                    <div class="shortcut-tag">co: or pilot:</div>
+                </div>
+                
+                <div class="service-card perplexity">
+                    <div class="service-icon">🔎</div>
+                    <h3>Perplexity</h3>
+                    <p>AI search with sources</p>
+                    <div class="shortcut-tag">p: or ppl:</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Installation -->
+    <section id="install" class="how-it-works">
+        <div class="container">
+            <h2 class="section-title">� Installation</h2>
+            
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Download Extension</h3>
+                    <p>Get the latest release from GitHub or Chrome Web Store (coming soon)</p>
+                    <a href="https://github.com/jovylle/chatgpt-omnibox/releases" target="_blank" style="color: #10a37f; text-decoration: underline;">📂 Download from GitHub</a>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Install in Chrome</h3>
+                    <p>Go to chrome://extensions/, enable Developer Mode, and click "Load unpacked"</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Start Using</h3>
+                    <p>Type "chat" in your address bar, press Tab, and enjoy instant AI access!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="features" style="background: white;">
+        <div class="container">
+            <h2 class="section-title">🚀 How It Works</h2>
+            
+            <div class="steps" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; margin-top: 40px;">
+                <div class="feature-card">
+                    <span class="feature-icon">⌨️</span>
+                    <h3>Type "chat"</h3>
+                    <p>Click your address bar and type "chat" then press Tab. You'll see the AI Search Router activate.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">💭</span>
+                    <h3>Enter Your Query</h3>
+                    <p>Type your question or use shortcuts like "g: hello world" for ChatGPT or "c: analyze data" for Claude.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🎯</span>
+                    <h3>Get Instant Results</h3>
+                    <p>Press Enter and you're instantly taken to your preferred AI service with your query ready to go!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="stats">
+        <div class="container">
+            <h2>📊 Why Developers Love It</h2>
+            
+            <div class="stats-grid">
+                <div class="stat">
+                    <span class="stat-number">4</span>
+                    <span class="stat-label">AI Services</span>
+                </div>
+                
+                <div class="stat">
+                    <span class="stat-number">0</span>
+                    <span class="stat-label">Data Collected</span>
+                </div>
+                
+                <div class="stat">
+                    <span class="stat-number">100%</span>
+                    <span class="stat-label">Open Source</span>
+                </div>
+                
+                <div class="stat">
+                    <span class="stat-number">⚡</span>
+                    <span class="stat-label">Lightning Fast</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Developer -->
+    <section class="features" style="background: #f8f9fa;">
+        <div class="container">
+            <h2 class="section-title">👨‍💻 About the Developer</h2>
+            
+            <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+                <div style="background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                    <div style="font-size: 4rem; margin-bottom: 20px;">🚀</div>
+                    <h3 style="font-size: 1.8rem; margin-bottom: 15px; color: #333;">jovylle</h3>
+                    <p style="color: #666; line-height: 1.7; margin-bottom: 30px;">
+                        Full-stack developer passionate about creating tools that enhance productivity and streamline workflows. 
+                        I believe in building software that solves real problems while respecting user privacy and maintaining transparency.
+                    </p>
+                    
+                    <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
+                        <div style="background: #f8f9fa; padding: 10px 20px; border-radius: 25px; border-left: 4px solid #10a37f;">
+                            <strong>🎯 Focus:</strong> Developer Tools & Extensions
+                        </div>
+                        <div style="background: #f8f9fa; padding: 10px 20px; border-radius: 25px; border-left: 4px solid #0078d4;">
+                            <strong>💡 Philosophy:</strong> Privacy-First Development
+                        </div>
+                        <div style="background: #f8f9fa; padding: 10px 20px; border-radius: 25px; border-left: 4px solid #cc785c;">
+                            <strong>🔧 Approach:</strong> Simple & Effective Solutions
+                        </div>
+                    </div>
+                    
+                    <p style="color: #666; font-style: italic;">
+                        "AI Search Router was born from my daily frustration of switching between different AI services. 
+                        I wanted one simple interface to access them all - and I believe others do too."
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact & Links -->
+    <section style="padding: 60px 20px; background: white;">
+        <div class="container">
+            <h2 class="section-title">📬 Get in Touch</h2>
+            
+            <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+                <p style="font-size: 1.1rem; color: #666; margin-bottom: 40px;">
+                    Have questions, suggestions, or found a bug? I'd love to hear from you!
+                </p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <a href="https://github.com/jovylle/chatgpt-omnibox/issues" target="_blank" 
+                       style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); padding: 20px; border-radius: 10px; text-decoration: none; color: #333; border-left: 4px solid #10a37f; transition: transform 0.3s ease;"
+                       onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <div style="font-size: 1.5rem; margin-bottom: 10px;">🐛</div>
+                        <strong>Report Issues</strong><br>
+                        <span style="color: #666; font-size: 0.9rem;">GitHub Issues</span>
+                    </a>
+                    
+                    <a href="https://github.com/jovylle/chatgpt-omnibox" target="_blank"
+                       style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); padding: 20px; border-radius: 10px; text-decoration: none; color: #333; border-left: 4px solid #0078d4; transition: transform 0.3s ease;"
+                       onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <div style="font-size: 1.5rem; margin-bottom: 10px;">📂</div>
+                        <strong>View Source</strong><br>
+                        <span style="color: #666; font-size: 0.9rem;">GitHub Repository</span>
+                    </a>
+                    
+                    <a href="https://github.com/jovylle" target="_blank"
+                       style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); padding: 20px; border-radius: 10px; text-decoration: none; color: #333; border-left: 4px solid #cc785c; transition: transform 0.3s ease;"
+                       onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <div style="font-size: 1.5rem; margin-bottom: 10px;">👨‍💻</div>
+                        <strong>Follow Me</strong><br>
+                        <span style="color: #666; font-size: 0.9rem;">@jovylle on GitHub</span>
+                    </a>
+                </div>
+                
+                <div style="margin-top: 40px; padding: 20px; background: #f0f9ff; border-radius: 10px; border-left: 4px solid #10a37f;">
+                    <h4 style="color: #333; margin-bottom: 10px;">🌟 Want to contribute?</h4>
+                    <p style="color: #666; margin: 0;">
+                        AI Search Router is open source! Feel free to submit pull requests, suggest features, or help improve the documentation.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <h3>🔍 AI Search Router</h3>
+            <p>Universal AI access from your browser's address bar</p>
+            
+            <div class="footer-links">
+                <a href="https://github.com/jovylle/chatgpt-omnibox" target="_blank">📂 GitHub</a>
+                <a href="privacy-policy.html">🔒 Privacy Policy</a>
+                <a href="https://github.com/jovylle/chatgpt-omnibox/releases" target="_blank">📥 Download</a>
+                <a href="https://github.com/jovylle/chatgpt-omnibox/issues" target="_blank">🐛 Report Bug</a>
+                <a href="https://github.com/jovylle" target="_blank">👨‍💻 @jovylle</a>
+            </div>
+            
+            <p style="margin-top: 20px; opacity: 0.7;">
+                Made with ❤️ by <a href="https://github.com/jovylle" target="_blank" style="color: #10a37f;">jovylle</a> • Hosted at <a href="https://git.jovylle.com/chatgpt-omnibox/" style="color: #10a37f;">git.jovylle.com</a> • Open Source • Privacy First
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Typing animation
+        const texts = [
+            'chat analyze this data',
+            'g: write a function',
+            'c: explain quantum physics',
+            'p: latest AI news'
+        ];
+        
+        let textIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        
+        function typeAnimation() {
+            const currentText = texts[textIndex];
+            const typingElement = document.querySelector('.typing-text');
+            
+            if (!isDeleting) {
+                typingElement.textContent = currentText.substring(0, charIndex + 1);
+                charIndex++;
+                
+                if (charIndex === currentText.length) {
+                    isDeleting = true;
+                    setTimeout(typeAnimation, 2000);
+                    return;
+                }
+            } else {
+                typingElement.textContent = currentText.substring(0, charIndex);
+                charIndex--;
+                
+                if (charIndex === 0) {
+                    isDeleting = false;
+                    textIndex = (textIndex + 1) % texts.length;
+                    setTimeout(typeAnimation, 500);
+                    return;
+                }
+            }
+            
+            setTimeout(typeAnimation, isDeleting ? 50 : 100);
+        }
+        
+        // Start animation when page loads
+        window.addEventListener('load', () => {
+            setTimeout(typeAnimation, 1000);
+        });
+        
+        // Smooth scroll to installation section
+        document.querySelector('.cta-button').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('install').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        });
+    </script>
+</body>
+</html>
