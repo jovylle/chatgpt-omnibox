@@ -1,19 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "AI Omnibox",
+  "name": "AI Search Router",
   "version": "1.0.0",
-  "description": "Search multiple AI services (ChatGPT, Copilot, Claude, Perplexity) with 'chat' keyword",
+  "description": "Quick access to your selected AI service with chat keyword - ChatGPT, Claude, Copilot, Perplexity",
   "author": "jovylle",
   
   "permissions": [
-    "activeTab",
     "contextMenus",
     "storage"
   ],
-  
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
-  },
   
   "background": {
     "service_worker": "background.js"
@@ -25,13 +20,6 @@
   
   "options_page": "options.html",
   
-  "web_accessible_resources": [
-    {
-      "resources": ["popup.js", "options.js"],
-      "matches": ["<all_urls>"]
-    }
-  ],
-  
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -40,7 +28,7 @@
   
   "action": {
     "default_popup": "popup.html",
-    "default_title": "AI Omnibox",
+    "default_title": "AI Search Router - Type 'chat' in address bar",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",

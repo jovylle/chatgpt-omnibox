@@ -220,7 +220,7 @@ Transform your browser's address bar into a powerful AI gateway that learns from
 
     ├── 🖼️ icon48.png
 
-    └── 🖼️ icon128.png- [ChatGPT](https://chat.openai.com/)
+    └── 🖼️ icon128.png- [ChatGPT](https://chatgpt.com/)
 
 ```- [GitHub Copilot](https://copilot.microsoft.com/)
 

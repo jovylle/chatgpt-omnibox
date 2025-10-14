@@ -14,8 +14,8 @@ function escapeXML(text) {
 const AI_SERVICES = {
   chatgpt: {
     name: 'ChatGPT',
-    url: 'https://chat.openai.com/?q=%s',
-    baseUrl: 'https://chat.openai.com/',
+    url: 'https://chatgpt.com/?q=%s',
+    baseUrl: 'https://chatgpt.com/',
     icon: '💬',
     keywords: ['gpt', 'chatgpt', 'openai'],
     aliases: ['g', 'chat', 'gpt4'],
@@ -36,7 +36,7 @@ const AI_SERVICES = {
   },
   claude: {
     name: 'Claude AI',
-    url: 'https://claude.ai/?q=%s',
+    url: 'https://claude.ai/new?query=%s',
     baseUrl: 'https://claude.ai/',
     icon: '🧠',
     keywords: ['claude', 'anthropic'],
@@ -69,17 +69,8 @@ let userStats = {
 };
 
 // Load saved preferences and user statistics
-chrome.storage.sync.get(['defaultAI', 'enabledServices', 'userStats'], function(result) {
+chrome.storage.sync.get(['defaultAI', 'userStats'], function(result) {
   defaultAI = result.defaultAI || 'chatgpt';
-  
-  // Load enabled services
-  if (result.enabledServices) {
-    Object.keys(result.enabledServices).forEach(serviceId => {
-      if (AI_SERVICES[serviceId]) {
-        AI_SERVICES[serviceId].enabled = result.enabledServices[serviceId];
-      }
-    });
-  }
   
   // Load user statistics
   if (result.userStats) {
@@ -97,6 +88,9 @@ chrome.storage.sync.get(['defaultAI', 'enabledServices', 'userStats'], function(
   if (contextMenuCreated) {
     updateContextMenu();
   }
+  
+  // Update extension title
+  updateExtensionTitle();
 });
 
 // Enhanced parsing with aliases and smart detection
@@ -105,7 +99,6 @@ function parseOmniboxInput(text) {
   
   // Check for AI service prefixes (keywords and aliases)
   for (const [serviceId, service] of Object.entries(AI_SERVICES)) {
-    if (!service.enabled) continue;
     
     // Check all keywords and aliases
     const allMatchers = [...service.keywords, ...service.aliases];
@@ -125,7 +118,6 @@ function parseOmniboxInput(text) {
   
   // Smart detection for partial matches (e.g., "gpt " or "claude ")
   for (const [serviceId, service] of Object.entries(AI_SERVICES)) {
-    if (!service.enabled) continue;
     
     const allMatchers = [...service.keywords, ...service.aliases];
     
@@ -152,8 +144,7 @@ function parseOmniboxInput(text) {
 
 // Get sorted AI services by usage frequency
 function getSortedAIServices() {
-  const enabledServices = Object.entries(AI_SERVICES)
-    .filter(([_, service]) => service.enabled)
+  const allServices = Object.entries(AI_SERVICES)
     .map(([serviceId, service]) => ({
       id: serviceId,
       ...service,
@@ -161,7 +152,7 @@ function getSortedAIServices() {
     }));
   
   // Sort by usage (most used first), then alphabetically
-  return enabledServices.sort((a, b) => {
+  return allServices.sort((a, b) => {
     if (b.usage !== a.usage) {
       return b.usage - a.usage;
     }
@@ -214,6 +205,31 @@ function updateContextMenu() {
   });
 }
 
+// Update extension title based on default AI
+function updateExtensionTitle() {
+  const aiService = getDefaultAIService();
+  chrome.action.setTitle({
+    title: `${aiService.icon} ${aiService.name} Omnibox - Type 'chat' in address bar`
+  });
+  
+  // Set a badge to show current AI service
+  const badges = {
+    'chatgpt': 'GPT',
+    'claude': 'CLD', 
+    'copilot': 'COP',
+    'perplexity': 'PPX',
+    'gemini': 'GEM'
+  };
+  
+  chrome.action.setBadgeText({
+    text: badges[aiService.id] || aiService.name.substring(0, 3).toUpperCase()
+  });
+  
+  chrome.action.setBadgeBackgroundColor({
+    color: aiService.color || '#10a37f'
+  });
+}
+
 // Enhanced omnibox event handlers with dynamic suggestions
 chrome.omnibox.onInputChanged.addListener((text, suggest) => {
   if (!text.trim()) {
@@ -244,22 +260,14 @@ chrome.omnibox.onInputChanged.addListener((text, suggest) => {
   // Add suggestions for other AI services (if no specific service detected)
   if (parsed.isDefault && parsed.query === text.trim()) {
     sortedServices.forEach(service => {
-      if (service.id !== defaultAI && service.enabled) {
-        // Suggest both colon and space syntax
+      if (service.id !== defaultAI) {
+        // Suggest only colon syntax to avoid duplication
         const colonSyntax = `${service.aliases[0]}: ${text}`;
-        const spaceSyntax = `${service.aliases[0]} ${text}`;
         
         suggestions.push({
           content: colonSyntax,
-          description: `Search ${service.name} for: <match>${text}</match> <dim>(${escapeXML(service.description)})</dim>`
+          description: `${service.icon} ${service.name}: <match>${text}</match> <dim>(${escapeXML(service.description)})</dim>`
         });
-        
-        if (suggestions.length < 4) { // Limit suggestions
-          suggestions.push({
-            content: spaceSyntax,
-            description: `${service.icon} ${service.name}: <match>${text}</match>`
-          });
-        }
       }
     });
   }
@@ -299,8 +307,8 @@ chrome.omnibox.onInputEntered.addListener((text, disposition) => {
   const parsed = parseOmniboxInput(text);
   const aiService = AI_SERVICES[parsed.service];
   
-  if (!aiService || !aiService.enabled) {
-    // Fallback to default AI if service not found or disabled
+  if (!aiService) {
+    // Fallback to default AI if service not found
     const fallbackService = getDefaultAIService();
     const query = encodeURIComponent(text.trim());
     const searchUrl = fallbackService.url.replace('%s', query);
@@ -342,6 +350,7 @@ chrome.runtime.onInstalled.addListener(() => {
     } else {
       contextMenuCreated = true;
       updateContextMenu();
+      updateExtensionTitle();
     }
   });
 });
@@ -367,14 +376,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.defaultAI) {
       defaultAI = request.defaultAI;
     }
-    if (request.enabledServices) {
-      Object.keys(request.enabledServices).forEach(serviceId => {
-        if (AI_SERVICES[serviceId]) {
-          AI_SERVICES[serviceId].enabled = request.enabledServices[serviceId];
-        }
-      });
-    }
     updateContextMenu();
+    updateExtensionTitle();
     sendResponse({ success: true });
   }
 });
@@ -387,13 +390,7 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
       if (contextMenuCreated) {
         updateContextMenu();
       }
-    }
-    if (changes.enabledServices) {
-      Object.keys(changes.enabledServices.newValue || {}).forEach(serviceId => {
-        if (AI_SERVICES[serviceId]) {
-          AI_SERVICES[serviceId].enabled = changes.enabledServices.newValue[serviceId];
-        }
-      });
+      updateExtensionTitle();
     }
   }
 });

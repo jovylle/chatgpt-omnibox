@@ -44,23 +44,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     const recentSearches = recentData.recentSearches || [];
     
     // Show currently configured service
-    const enabledServices = Object.values(services).filter(s => s.enabled);
+    const allServices = Object.values(services);
     const currentServiceIconEl = document.getElementById('currentServiceIcon');
     const currentServiceNameEl = document.getElementById('currentServiceName');
     
-    if (enabledServices.length > 0 && currentServiceIconEl && currentServiceNameEl) {
-      const mostUsed = enabledServices.reduce((prev, current) => {
-        const prevUsage = statistics[prev.id]?.usage || 0;
-        const currentUsage = statistics[current.id]?.usage || 0;
-        return currentUsage > prevUsage ? current : prev;
-      });
+    // Get the current default service
+    chrome.storage.sync.get(['defaultAI'], function(result) {
+      const defaultAI = result.defaultAI || 'chatgpt';
+      const defaultService = services[defaultAI];
       
-      currentServiceIconEl.textContent = mostUsed.icon;
-      currentServiceNameEl.textContent = mostUsed.name;
-    }
+      if (defaultService && currentServiceIconEl && currentServiceNameEl) {
+        currentServiceIconEl.textContent = defaultService.icon;
+        currentServiceNameEl.textContent = defaultService.name;
+        
+        // Update the open button text
+        const openButtonText = document.getElementById('openButtonText');
+        if (openButtonText) {
+          openButtonText.textContent = `Open ${defaultService.name}`;
+        }
+        
+        // Update the dynamic title and subtitle
+        const dynamicTitle = document.getElementById('dynamicTitle');
+        const dynamicSubtitle = document.getElementById('dynamicSubtitle');
+        if (dynamicTitle) {
+          dynamicTitle.textContent = `${defaultService.icon} ${defaultService.name} Omnibox`;
+        }
+        if (dynamicSubtitle) {
+          dynamicSubtitle.textContent = `Type "chat" to search ${defaultService.name}`;
+        }
+      }
+    });
     
     // Populate shortcuts list
-    populateShortcutsList(enabledServices, statistics);
+    populateShortcutsList(allServices, statistics);
     
     // Populate recent searches
     populateRecentSearches(recentSearches, services);
@@ -86,18 +102,11 @@ function populateShortcutsList(services, statistics) {
   
   if (!shortcutsList) return;
   
-  if (services.length === 0) {
-    shortcutsList.innerHTML = `
-      <div style="text-align: center; color: #999; padding: 20px;">
-        <div>No AI services enabled</div>
-        <div style="font-size: 11px; margin-top: 4px;">Configure services in options</div>
-      </div>
-    `;
-    return;
-  }
+  // Get all services (not just enabled ones)
+  const allServices = Object.values(getDefaultAIServices());
   
   // Sort by usage
-  const sortedServices = services.sort((a, b) => {
+  const sortedServices = allServices.sort((a, b) => {
     const aUsage = statistics[a.id]?.usage || 0;
     const bUsage = statistics[b.id]?.usage || 0;
     return bUsage - aUsage;
@@ -239,7 +248,7 @@ function getDefaultAIServices() {
       id: 'chatgpt',
       name: 'ChatGPT',
       icon: '🤖',
-      url: 'https://chat.openai.com/?q={query}',
+      url: 'https://chatgpt.com/?q={query}',
       aliases: ['gpt', 'chatgpt', 'openai'],
       enabled: true
     },
@@ -247,7 +256,7 @@ function getDefaultAIServices() {
       id: 'claude',
       name: 'Claude',
       icon: '🎭',
-      url: 'https://claude.ai/?q={query}',
+      url: 'https://claude.ai/new?query={query}',
       aliases: ['claude', 'anthropic'],
       enabled: true
     },

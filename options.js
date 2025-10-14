@@ -5,7 +5,7 @@
 const AI_SERVICES = {
   chatgpt: {
     name: 'ChatGPT',
-    url: 'https://chat.openai.com/?q=%s',
+    url: 'https://chatgpt.com/?q=%s',
     icon: '💬',
     keywords: ['gpt', 'chatgpt', 'openai'],
     aliases: ['g', 'chat', 'gpt4'],
@@ -21,7 +21,7 @@ const AI_SERVICES = {
   },
   claude: {
     name: 'Claude AI',
-    url: 'https://claude.ai/?q=%s',
+    url: 'https://claude.ai/new?query=%s',
     icon: '🧠',
     keywords: ['claude', 'anthropic'],
     aliases: ['c', 'ant', 'claude3'],
@@ -39,7 +39,6 @@ const AI_SERVICES = {
 
 // DOM elements
 let defaultServiceCards;
-let toggles;
 let saveButton;
 let statusMessage;
 let statsGrid;
@@ -47,7 +46,6 @@ let statsGrid;
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
   defaultServiceCards = document.querySelectorAll('.default-selection');
-  toggles = document.querySelectorAll('.toggle-item input[type="checkbox"]');
   saveButton = document.getElementById('saveSettings');
   statusMessage = document.getElementById('statusMessage');
   statsGrid = document.getElementById('statsGrid');
@@ -62,14 +60,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Load saved settings from storage
 function loadSettings() {
-  chrome.storage.sync.get(['defaultAI', 'enabledServices'], function(result) {
+  chrome.storage.sync.get(['defaultAI'], function(result) {
     const defaultAI = result.defaultAI || 'chatgpt';
-    const enabledServices = result.enabledServices || {
-      chatgpt: true,
-      copilot: true,
-      claude: true,
-      perplexity: true
-    };
     
     // Update default AI radio button
     const radioButton = document.getElementById(`default-${defaultAI}`);
@@ -77,14 +69,6 @@ function loadSettings() {
       radioButton.checked = true;
       updateSelectedCard(defaultAI);
     }
-    
-    // Update toggle switches
-    Object.keys(enabledServices).forEach(serviceId => {
-      const toggle = document.getElementById(`enable-${serviceId}`);
-      if (toggle) {
-        toggle.checked = enabledServices[serviceId];
-      }
-    });
   });
 }
 
@@ -236,13 +220,7 @@ function setupEventListeners() {
     });
   });
   
-  // Toggle switch changes
-  toggles.forEach(toggle => {
-    toggle.addEventListener('change', function() {
-      // Visual feedback could be added here if desired
-      console.log(`${this.id} toggled to ${this.checked}`);
-    });
-  });
+
   
   // Save button
   saveButton.addEventListener('click', saveSettings);
@@ -263,34 +241,13 @@ function saveSettings() {
   const defaultAI = document.querySelector('input[name="defaultAI"]:checked')?.value;
   
   if (!defaultAI) {
-    showStatus('Please select a default AI service', 'error');
-    return;
-  }
-  
-  // Collect enabled services
-  const enabledServices = {};
-  toggles.forEach(toggle => {
-    const serviceId = toggle.id.replace('enable-', '');
-    enabledServices[serviceId] = toggle.checked;
-  });
-  
-  // Ensure at least one service is enabled
-  const hasEnabledService = Object.values(enabledServices).some(enabled => enabled);
-  if (!hasEnabledService) {
-    showStatus('Please enable at least one AI service', 'error');
-    return;
-  }
-  
-  // Ensure default AI is enabled
-  if (!enabledServices[defaultAI]) {
-    showStatus('Default AI service must be enabled', 'error');
+    showStatus('Please select an AI service', 'error');
     return;
   }
   
   // Save to storage
   chrome.storage.sync.set({
-    defaultAI: defaultAI,
-    enabledServices: enabledServices
+    defaultAI: defaultAI
   }, function() {
     if (chrome.runtime.lastError) {
       showStatus('Error saving settings', 'error');
@@ -301,8 +258,7 @@ function saveSettings() {
       // Notify background script of the change
       chrome.runtime.sendMessage({
         action: 'updateSettings',
-        defaultAI: defaultAI,
-        enabledServices: enabledServices
+        defaultAI: defaultAI
       });
     }
   });
