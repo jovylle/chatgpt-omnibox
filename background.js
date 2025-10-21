@@ -208,6 +208,7 @@ function updateContextMenu() {
 // Update extension title based on default AI
 function updateExtensionTitle() {
   const aiService = getDefaultAIService();
+  const serviceId = defaultAI; // ensure we use the actual id string
   chrome.action.setTitle({
     title: `${aiService.icon} ${aiService.name} Omnibox - Type 'chat' in address bar`
   });
@@ -217,12 +218,11 @@ function updateExtensionTitle() {
     'chatgpt': 'GPT',
     'claude': 'CLD', 
     'copilot': 'COP',
-    'perplexity': 'PPX',
-    'gemini': 'GEM'
+    'perplexity': 'PPX'
   };
   
   chrome.action.setBadgeText({
-    text: badges[aiService.id] || aiService.name.substring(0, 3).toUpperCase()
+    text: badges[serviceId] || aiService.name.substring(0, 3).toUpperCase()
   });
   
   chrome.action.setBadgeBackgroundColor({
